@@ -8,10 +8,6 @@
 #include <io.h>
 #include <fcntl.h>
 
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 using namespace std;
 
 
@@ -72,6 +68,5 @@ int main() {
 	}
 
 	delete instructions;
-	_CrtDumpMemoryLeaks();
 	return 0;
 }

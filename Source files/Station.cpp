@@ -36,6 +36,7 @@ void Station::sortLines()
 	sort(station_lines_.begin(), station_lines_.end());
 }
 
+//Ispisuje podatke o stanici u trazenom formatu
 void Station::print(const string& filepath) const
 {
 	ofstream output(filepath);

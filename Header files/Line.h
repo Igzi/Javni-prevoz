@@ -18,6 +18,8 @@ public:
 	string getName() const;
 	int getPosition(Station* station);
 
+	void addStation(Station* station);
+
 	vector<Path*> findPaths(Station* station, int t, Path& current_path);
 
 	void print(const string& filepath) const;
@@ -32,9 +34,9 @@ private:
 
 	string name_;
 	int start_, end_, reverse_start_, reverse_end_, time_difference_;
-	vector<Station*> line_stations_;
-	set<string> intersecting_lines_;
-	unordered_map<Station*, int> station_position_; //Mapa za efikasnu pretragu stanica u vektoru line_stations_
+	vector<Station*> line_stations_; //Vektor svih stanica kroz koje prolazi ova linija
+	set<string> intersecting_lines_; //Skup svih linija koje dele stajaliste sa ovom linijom
+	unordered_map<int, int> station_position_; //Mapa za efikasnu pretragu stanica u vektoru line_stations_ na osnovu sifre stanice
 };
 
 #endif // line_h

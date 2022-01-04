@@ -8,6 +8,7 @@
 class Network {
 public:
 	Network();
+	Network(const Network& obj);
 	~Network();
 
 	void loadStations(const string& filepath);
@@ -17,7 +18,7 @@ public:
 	void printLine(string& name);
 	void printStatistics(string& name);
 
-	void findFastestPath(int start, int end, string clock, PathType type);
+	void findPath(int start, int end, string clock, PathType type);
 
 private: 
 	
@@ -32,18 +33,18 @@ private:
 	void clearStations();
 	void clearLines();
 
-	Line* makeLine(string& line);
+	Line* makeLine(string& line, int& file_line);
 
 	bool isNumber(const string& num) const;
-	bool checkTimeFormat(const string& time) const ;
+	bool checkTimeFormat(const string& time) const;
 	int parseTime(const string& time) const;
 
 	void sortStationLines();
 
 	void printPaths(int start, int end, const string& filepath, unordered_map<int, Path>& stations);
 
-	unordered_map<int, Station*> stations_;
-	unordered_map<string, Line*> lines_;
+	unordered_map<int, Station*> stations_; //Mapa svih stanica unedjena po sifri stanica
+	unordered_map<string, Line*> lines_; //Mapa svih linija uredjena po nazivu linije
 };
 
 #endif // network_h

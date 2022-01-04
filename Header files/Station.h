@@ -23,9 +23,9 @@ public:
 	void print(const string& filepath) const;
 
 private:
-	int code_;
-	string name_;
-	vector<string> station_lines_;
+	int code_; //Sifra stanice
+	string name_; //Ime stanice
+	vector<string> station_lines_; //Skup linija koje staju na ovoj stanici
 };
 
 #endif // station_h

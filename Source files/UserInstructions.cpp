@@ -10,6 +10,11 @@ UserInstructions::UserInstructions()
 	network = new Network();
 }
 
+UserInstructions::UserInstructions(const UserInstructions& obj)
+{
+	network = new Network(*obj.network);
+}
+
 UserInstructions::~UserInstructions()
 {
 	delete network;
@@ -17,18 +22,20 @@ UserInstructions::~UserInstructions()
 
 int UserInstructions::loadStations()
 {
+	wcout << L"Molimo Vas, unesite putanju do fajla sa stajalištima:" << endl;
+
 	while (true) {
 		try {
-			wcout << L"Molimo Vas, unesite putanju do fajla sa stajalištima:" << endl;
-
 			string filepath;
 			cin >> filepath;
 
 			network->loadStations(filepath);
 			break;
 		}
-		catch (Error e) {
+		catch (FileError e) {
+			if (e.getLine() != 0) wcout << L"Linija " << e.getLine() << ": ";
 			wcout << e.what() << endl;
+
 			wcout << L"1. Pokušajte ponovo" << endl;
 			wcout << L"0. Kraj rada" << endl;
 
@@ -41,36 +48,38 @@ int UserInstructions::loadStations()
 			}
 		}
 	}
-	return 1; //1 je signal da je izvrsavanje uspesno izvrseno
+	return 1; //1 je signal da je funkcija uspesno izvrsena
 }
 
 int UserInstructions::loadLines()
 {
+	wcout << L"Molimo Vas, unesite putanju do fajla sa linijama gradskog prevoza:" << endl;
+
 	while (true) {
 		try {
-			wcout << L"Molimo Vas, unesite putanju do fajla sa linijama gradskog prevoza:" << endl;
-
 			string filepath;
 			cin >> filepath;
 
 			network->loadLines(filepath);
 			break;
 		}
-		catch (Error e) {
+		catch (FileError e) {
+			if (e.getLine() != 0) wcout << L"Linija " << e.getLine() << ": ";
 			wcout << e.what() << endl;
+
 			wcout << L"1. Pokušajte ponovo" << endl;
 			wcout << L"0. Kraj rada" << endl;
 
 			while (true) {
 				int user_input;
 				cin >> user_input;
-				if (user_input == 0) return 0; //0 je signal da korisnik zeli da zavrsi izvrsavanje programa
+				if (user_input == 0) return 0;
 				if (user_input == 1) break;
 				wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 			}
 		}
 	}
-	return 1; //1 je signal da je izvrsavanje uspesno izvrseno
+	return 1;
 }
 
 void UserInstructions::printStation()
@@ -80,9 +89,14 @@ void UserInstructions::printStation()
 	int station;
 	cin >> station;
 
-	network->printStation(station);
+	try {
+		network->printStation(station);
 
-	wcout << L"Generisan je fajl stajaliste_" + to_wstring(station) + L".txt sa osnovnim informacijama za stajalište " + to_wstring(station) + L"." << endl;
+		wcout << L"Generisan je fajl stajaliste_" + to_wstring(station) + L".txt sa osnovnim informacijama za stajalište " + to_wstring(station) + L"." << endl;
+	}
+	catch (Error e) {
+		wcout << e.what() << endl;
+	}
 }
 
 void UserInstructions::printLine()
@@ -92,9 +106,14 @@ void UserInstructions::printLine()
 	string line;
 	cin >> line;
 
-	network->printLine(line);
+	try {
+		network->printLine(line);
 
-	wcout << L"Generisan je fajl linija_" + wstring(line.begin(), line.end()) + L".txt sa osnovnim informacijama o liniji " + wstring(line.begin(), line.end()) + L"." << endl;
+		wcout << L"Generisan je fajl linija_" + wstring(line.begin(), line.end()) + L".txt sa osnovnim informacijama o liniji " + wstring(line.begin(), line.end()) + L"." << endl;
+	}
+	catch (Error e) {
+		wcout << e.what() << endl;
+	}
 }
 
 void UserInstructions::printStatistics()
@@ -104,9 +123,14 @@ void UserInstructions::printStatistics()
 	string line;
 	cin >> line;
 
-	network->printStatistics(line);
+	try {
+		network->printStatistics(line);
 
-	wcout << L"Generisan je fajl statistika_" + wstring(line.begin(), line.end()) + L".txt sa statističkim informacijama o liniji " + wstring(line.begin(), line.end()) + L"." << endl;
+		wcout << L"Generisan je fajl statistika_" + wstring(line.begin(), line.end()) + L".txt sa statističkim informacijama o liniji " + wstring(line.begin(), line.end()) + L"." << endl;
+	}
+	catch (Error e) {
+		wcout << e.what() << endl;
+	}
 }
 
 int UserInstructions::printPath()
@@ -124,13 +148,19 @@ int UserInstructions::printPath()
 
 	while (true) {
 		cin >> type;
-		if (type == 0) return 0; //0 je signal da korisnik zeli da zavrsi izvrsavanje programa
+		if (type == 0) return 0;
 		if (type == 1 || type == 2) break;
 		wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 	}
 
-	network->findFastestPath(start, end, t, static_cast<PathType>(type - 1));
+	try {
+		network->findPath(start, end, t, static_cast<PathType>(type - 1));
 
-	wcout << L"Generisan je fajl putanja_" + to_wstring(start) + L"_" + to_wstring(end) + L".txt sa traženom putanjom." << endl;
+		wcout << L"Generisan je fajl putanja_" + to_wstring(start) + L"_" + to_wstring(end) + L".txt sa traženom putanjom." << endl;
+	}
+	catch (Error e) {
+		wcout << e.what() << endl;
+	}
+
 	return 1;
 }

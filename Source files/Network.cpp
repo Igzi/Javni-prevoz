@@ -20,6 +20,23 @@ Network::Network()
 {
 }
 
+Network::Network(const Network& obj)
+{
+	for (auto& line : obj.lines_) {
+		lines_[line.first] = new Line(*line.second); //Generise se plitka kopija
+	}
+
+	for (auto& station : obj.stations_) {
+		Station* current_station = new Station(*station.second);
+		stations_[station.first] = current_station;
+
+		for (int i = 0; i < current_station->station_lines_.size(); i++) {
+			Line* current_line = lines_[current_station->station_lines_[i]];
+			current_line->addStation(current_station); //Ovde od plitke kopije pravimo duboku
+		}
+	}
+}
+
 Network::~Network()
 {
 	clearStations();
@@ -33,26 +50,28 @@ void Network::loadStations(const string& filepath)
 	ifstream input(filepath);
 
 	if (!input.is_open()) {
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
-		wstring msg = L"Nije moguće otvoriti fajl " + myconv.from_bytes(filepath) + L".";
-		throw Error(msg);
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		wstring msg = L"Nije moguće otvoriti fajl " + conv.from_bytes(filepath) + L".";
+		throw FileError(msg, 0);
 		return;
 	}
 
 	string code, name;
-	int int_code;
+	int int_code, file_line = 0;
 
 	while (getline(input, code, ' ')) {
+		file_line++;
 		if (!isNumber(code)) {
-			throw Error(L"Šifra stanice mora biti ceo broj.");
+			throw FileError(L"Šifra stanice mora biti ceo broj.", file_line);
 			return;
 		}
 
+		name = "";
 		getline(input, name);
 		int_code = stoi(code);
 
 		if (stations_.find(int_code) != stations_.end()) {
-			throw Error(L"Šifra stanice mora biti jedinstvena.");
+			throw FileError(L"Šifra stanice mora biti jedinstvena.", file_line);
 			return;
 		}
 		
@@ -69,15 +88,23 @@ void Network::loadLines(const string& filepath)
 	string line;
 
 	if (!input.is_open()) {
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
-		wstring msg = L"Nije moguće otvoriti fajl " + myconv.from_bytes(filepath) + L".";
-		throw Error(msg);
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		wstring msg = L"Nije moguće otvoriti fajl " + conv.from_bytes(filepath) + L".";
+		throw FileError(msg, 0);
 		return;
 	}
 
-	while (getline(input, line)) {
-		Line* new_line = makeLine(line);
-		lines_[new_line->getName()] = new_line;
+	int file_line = 0;
+	try {
+		while (getline(input, line)) {
+			file_line++;
+			Line* new_line = makeLine(line, file_line);
+			lines_[new_line->getName()] = new_line;
+		}
+	}
+	catch (FileError e) {
+		throw e;
+		return;
 	}
 
 	sortStationLines();
@@ -85,6 +112,11 @@ void Network::loadLines(const string& filepath)
 
 void Network::printStation(int code)
 {
+	if (stations_.find(code) == stations_.end()) {
+		throw Error(L"Stanica sa šifrom " + to_wstring(code) + L" ne postoji.");
+		return;
+	}
+
 	string filepath = FOLDERPATH + STATIONFILEPREFIX + SEPARATOR + to_string(code) + FILETYPETXT;
 
 	stations_[code]->print(filepath);
@@ -92,6 +124,12 @@ void Network::printStation(int code)
 
 void Network::printLine(string& name)
 {
+	if (lines_.find(name) == lines_.end()) {
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		throw Error(L"Linija sa imenom " + conv.from_bytes(name) + L" ne postoji.");
+		return;
+	}
+
 	string filepath = FOLDERPATH + LINEFILEPREFIX + SEPARATOR + name + FILETYPETXT;
 
 	lines_[name]->print(filepath);
@@ -99,20 +137,42 @@ void Network::printLine(string& name)
 
 void Network::printStatistics(string& name)
 {
+	if (lines_.find(name) == lines_.end()) {
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		throw Error(L"Linija sa imenom " + conv.from_bytes(name) + L" ne postoji.");
+		return;
+	}
+
 	string filepath = FOLDERPATH + STATISTICSFILEPREFIX + SEPARATOR + name + FILETYPETXT;
 
 	lines_[name]->printStatistics(filepath);
 }
 
-void Network::findFastestPath(int start, int end, string clock, PathType type)
+void Network::findPath(int start, int end, string clock, PathType type)
 {
+	if (stations_.find(start) == stations_.end()) {
+		throw Error(L"Stanica sa šifrom " + to_wstring(start) + L" ne postoji.");
+		return;
+	}
+	if (stations_.find(end) == stations_.end()) {
+		throw Error(L"Stanica sa šifrom " + to_wstring(end) + L" ne postoji.");
+		return;
+	}
+	int t;
+	try {
+		t = parseTime(clock);
+	}
+	catch (Error e) {
+		throw e;
+		return;
+	}
+
 	string filepath = FOLDERPATH + PATHFILEPREFIX + SEPARATOR + to_string(start) + SEPARATOR + to_string(end) +  FILETYPETXT;
 
 	//Najkraci put pronalazimo pomocu dajkstrinog algoritma
 	unordered_map<int, Path> paths;
 	priority_queue<Path, vector<Path>, ComparePath> pq;
 
-	int t = parseTime(clock);
 	pq.push(Path(t, start, start, 0, "", type));
 
 	while (!pq.empty()) {
@@ -162,28 +222,62 @@ void Network::clearLines()
 	lines_.clear();
 }
 
-Line* Network::makeLine(string& line)
+Line* Network::makeLine(string& line, int& file_line)
 {
 	stringstream sstream(line);
 	string input_word, name;
 	int start, end, time_difference;
 	vector<Station*> line_stations;
-
+	
+	name = "";
 	getline(sstream, name, ' ');
 
-	sstream.get(); // '['
-	getline(sstream, input_word, '-');
-	start = parseTime(input_word);
+	if (name == "") {
+		throw FileError(L"Nedostaje ime linije", file_line);
+		return nullptr;
+	}
+	if (lines_.find(name) != lines_.end()) {
+		throw FileError(L"Oznaka linije mora biti jedinstvena", file_line);
+		return nullptr;
+	}
 
-	getline(sstream, input_word, '#');
-	end = parseTime(input_word);
+	try {
+		sstream.get(); // '['
 
+		input_word = "";
+		getline(sstream, input_word, '-');
+		start = parseTime(input_word);
+
+		input_word = "";
+		getline(sstream, input_word, '#');
+		end = parseTime(input_word);
+	}
+	catch (Error e) {
+		throw FileError(e.what(), file_line);
+		return nullptr;
+	}
+
+	input_word = "";
 	getline(sstream, input_word, ']');
+	if (!isNumber(input_word) || stoi(input_word) <= 0) {
+		throw FileError(L"Razmak između polazaka mora biti pozitivan ceo broj.", file_line);
+		return nullptr;
+	}
+		
 	time_difference = stoi(input_word);
 
 	sstream.get(); // ' '
 
 	while (getline(sstream, input_word, ' ')) {
+		if (!isNumber(input_word)) {
+			throw FileError(L"Šifra stanice mora biti ceo broj.", file_line);
+			return nullptr;
+		}
+		if (stations_.find(stoi(input_word)) == stations_.end()) {
+			throw FileError(L"Linija prolazi kroz nepostojeću stanicu", file_line);
+			return nullptr;
+		}
+
 		Station* station = stations_[stoi(input_word)];
 		line_stations.push_back(station);
 		station->addLine(name);
@@ -194,6 +288,8 @@ Line* Network::makeLine(string& line)
 
 bool Network::isNumber(const string& num) const
 {
+	if (num.size() == 0) return false;
+
 	for (int i = 0; i < num.size(); i++) {
 		if (i == 0 && num[i] == '-') continue;
 		if (!isdigit(num[i])) return false;
@@ -236,6 +332,11 @@ void Network::sortStationLines()
 
 void Network::printPaths(int start, int end, const string& filepath, unordered_map<int, Path>& stations)
 {
+	if (stations.find(end) == stations.end()) {
+		throw Error(L"Putanja od stanice " + to_wstring(start) + L" do stanice " + to_wstring(end) + L" ne postoji.");
+		return;
+	}
+
 	ofstream output(filepath);
 	vector<Path> paths;
 	int current_station = end;

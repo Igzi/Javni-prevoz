@@ -6,6 +6,7 @@
 class UserInstructions {
 public:
 	UserInstructions();
+	UserInstructions(const UserInstructions& obj);
 	~UserInstructions();
 
 	int loadStations();
