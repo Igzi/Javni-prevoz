@@ -33,6 +33,8 @@ void Station::addLine(string& new_line)
 
 void Station::sortLines()
 {
+	if (station_lines_.size() == 0) return;
+
 	vector<string> unique_lines;
 	sort(station_lines_.begin(), station_lines_.end());
 
