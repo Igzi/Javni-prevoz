@@ -17,12 +17,12 @@ public:
 	friend class Network;
 
 	Path();
-	Path(int time, int start, int end, int bus_cnt, string line, PathType type);
+	Path(int time, int start, int end, int l, int r, int bus_cnt, string line, PathType type);
 
 private:
 	int time_; //Trenutak dolaska na cilj
-	int start_; //Sifra pocetne stanice
-	int end_; //Sifra krajnje stanice
+	int start_, end_; //Sifra pocetne i krajnje stanice
+	int l_, r_; //Redni broj pocetne i krajnje stanice u liniji line_
 	int bus_cnt_; //Broj presedanja zajedno sa ovom putanjom
 	string line_; //Linija koja vozi ovu putanju
 	PathType type_; //Tip putanje koji je potrebno odrediti

@@ -33,7 +33,16 @@ void Station::addLine(string& new_line)
 
 void Station::sortLines()
 {
+	vector<string> unique_lines;
 	sort(station_lines_.begin(), station_lines_.end());
+
+	unique_lines.push_back(station_lines_[0]);
+	for (int i = 1; i < station_lines_.size(); i++) {
+		if (station_lines_[i - 1] == station_lines_[i]) continue;
+		unique_lines.push_back(station_lines_[i]);
+	}
+
+	station_lines_ = unique_lines;
 }
 
 //Ispisuje podatke o stanici u trazenom formatu

@@ -22,19 +22,21 @@ Network::Network()
 
 Network::Network(const Network& obj)
 {
-	for (auto& line : obj.lines_) {
-		lines_[line.first] = new Line(*line.second); //Generise se plitka kopija
+	for (auto& station : obj.stations_) {
+		stations_[station.first] = new Station(*station.second);
 	}
 
-	for (auto& station : obj.stations_) {
-		Station* current_station = new Station(*station.second);
-		stations_[station.first] = current_station;
+	for (auto& line : obj.lines_) {
+		Line* current_line = new Line(*line.second); //Generise se plitka kopija
+		lines_[line.first] = current_line;
 
-		for (int i = 0; i < current_station->station_lines_.size(); i++) {
-			Line* current_line = lines_[current_station->station_lines_[i]];
-			current_line->addStation(current_station); //Ovde od plitke kopije pravimo duboku
+		for (int i = 0; i < current_line->line_stations_.size(); i++) {
+			Station* current_station = current_line->line_stations_[i];
+			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
+
 		}
 	}
+
 }
 
 Network::~Network()
@@ -173,7 +175,7 @@ void Network::findPath(int start, int end, string clock, PathType type)
 	unordered_map<int, Path> paths;
 	priority_queue<Path, vector<Path>, ComparePath> pq;
 
-	pq.push(Path(t, start, start, 0, "", type));
+	pq.push(Path(t, start, start, 0, 0, 0, "", type));
 
 	while (!pq.empty()) {
 		Path current_path = pq.top();
@@ -189,7 +191,7 @@ void Network::findPath(int start, int end, string clock, PathType type)
 		//Prolazak kroz sve linije koje staju na ovoj stanici
 		for (int i = 0; i < current_station->station_lines_.size(); i++) {
 			Line* current_line = lines_[current_station->station_lines_[i]];
-			vector<Path*> line_paths = current_line->findPaths(current_station, path_time, current_path);
+			vector<Path*> line_paths = current_line->findPaths(current_station->getCode(), path_time, current_path);
 
 			for (int j = 0; j < line_paths.size(); j++) {
 				pq.push(Path(*line_paths[j]));
@@ -355,7 +357,7 @@ void Network::printPaths(int start, int end, const string& filepath, unordered_m
 	for (int i = 0; i < paths.size(); i++) {
 		Line* current_line = lines_[paths[i].line_];
 
-		current_line->printPath(output, stations_[paths[i].start_], stations_[paths[i].end_]);
+		current_line->printPath(output, paths[i].l_, paths[i].r_);
 		if (i != paths.size() - 1) {
 			output << "\n" << paths[i].line_ << "->" << paths[i + 1].line_ << "\n";
 		}

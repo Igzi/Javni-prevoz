@@ -6,11 +6,13 @@ Path::Path()
 	line_ = "";
 }
 
-Path::Path(int time, int start, int end, int bus_cnt, string line, PathType type)
+Path::Path(int time, int start, int end, int l, int r, int bus_cnt, string line, PathType type)
 {
 	time_ = time;
 	start_ = start;
 	end_ = end;
+	l_ = l;
+	r_ = r;
 	bus_cnt_ = bus_cnt;
 	line_ = line;
 	type_ = type;

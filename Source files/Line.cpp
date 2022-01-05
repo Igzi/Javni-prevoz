@@ -12,11 +12,7 @@ Line::Line(string name, int start, int end, int time_difference, vector<Station*
 	time_difference_ = time_difference;
 	reverse_start_ = start + (line_stations.size() - 1) * TIMEBETWEENSTATIONS;
 	reverse_end_ = end + (line_stations.size() - 1) * TIMEBETWEENSTATIONS;
-
-	for (int i = 0; i < line_stations.size(); i++) {
-		line_stations_.push_back(line_stations[i]);
-		station_position_[line_stations[i]->getCode()] = i;
-	}
+	line_stations_ = line_stations;
 }
 
 Line::~Line()
@@ -25,7 +21,6 @@ Line::~Line()
 	//Brisanje ovih objekata treba uraditi u klasi Network
 	line_stations_.clear();
 	intersecting_lines_.clear();
-	station_position_.clear();
 }
 
 string Line::getName() const
@@ -33,49 +28,47 @@ string Line::getName() const
 	return name_;
 }
 
-int Line::getPosition(Station* station)
-{
-	return station_position_[station->getCode()];
-}
-
-void Line::addStation(Station* station)
-{
-	int station_code = station->getCode();
-
-	if (station_position_.find(station_code) == station_position_.end()) {
-		station_position_[station_code] = line_stations_.size();
-		line_stations_.push_back(station);
-	}
-	else {
-		line_stations_[station_position_[station_code]] = station;
-	}
-}
-
 //Generise sve putanje ove linije koje pocinju sa stanice station u trenutku t i nastavljaju se na current_path
-vector<Path*> Line::findPaths(Station* station, int t, Path& current_path)
+vector<Path*> Line::findPaths(int current_station, int t, Path& current_path)
 {
 	vector<Path*> line_paths;
-	int direct_arrival_time = nextArrivalTime(true, station, t);
-	int reverse_arrival_time = nextArrivalTime(false, station, t);
-	int station_position = getPosition(station);
+	int direct_arrival_time, reverse_arrival_time;
+	int station_position = -1;
 
 	//Prolazak kroz sve stanice kroz koje prolazi current_line
-	for (int j = station_position + 1; j < line_stations_.size(); j++) {
-		int time = direct_arrival_time + (j - station_position) * Line::TIMEBETWEENSTATIONS;
-		int start = station->getCode();
-		int end = line_stations_[j]->getCode();
+	for (int i = 0; i < line_stations_.size(); i++) {
+		if (current_station == line_stations_[i]->getCode()) {
+			station_position = i;
+			direct_arrival_time = nextArrivalTime(true, station_position, t);
+			continue;
+		}
+
+		if (station_position == -1) continue;
+
+		int time = direct_arrival_time + (i - station_position) * Line::TIMEBETWEENSTATIONS;
+		int start = current_station;
+		int end = line_stations_[i]->getCode();
 		int bus_cnt = current_path.bus_cnt_ + 1;
 
-		line_paths.push_back(new Path(time, start, end, bus_cnt, name_, current_path.type_));
+		line_paths.push_back(new Path(time, start, end, station_position, i, bus_cnt, name_, current_path.type_));
 	}
 
-	for (int j = station_position - 1; j >= 0; j--) {
-		int time = reverse_arrival_time + (station_position - j) * Line::TIMEBETWEENSTATIONS;
-		int start = station->getCode();
-		int end = line_stations_[j]->getCode();
+	station_position = -1;
+	for (int i = line_stations_.size() - 1; i >= 0; i--) {
+		if (current_station == line_stations_[i]->getCode()) {
+			station_position = i;
+			reverse_arrival_time = nextArrivalTime(false, station_position, t);
+			continue;
+		}
+
+		if (station_position == -1) continue;
+
+		int time = reverse_arrival_time + (station_position - i) * Line::TIMEBETWEENSTATIONS;
+		int start = current_station;
+		int end = line_stations_[i]->getCode();
 		int bus_cnt = current_path.bus_cnt_ + 1;
 
-		line_paths.push_back(new Path(time, start, end, bus_cnt, name_, current_path.type_));
+		line_paths.push_back(new Path(time, start, end, station_position, i, bus_cnt, name_, current_path.type_));
 	}
 
 	return line_paths;
@@ -128,12 +121,8 @@ void Line::printStatistics(const string& filepath)
 }
 
 //Ispisuje sve stanice ove linije izmedju start i end
-void Line::printPath(ofstream& output, Station* start, Station* end)
+void Line::printPath(ofstream& output, int l, int r)
 {
-	int l, r;
-	l = getPosition(start);
-	r = getPosition(end);
-
 	for (int i = l; i <= r; i++) {
 		if (i != l) output << " ";
 		output << line_stations_[i]->getCode();
@@ -146,18 +135,18 @@ void Line::printPath(ofstream& output, Station* start, Station* end)
 	}
 }
 
-int Line::nextArrivalTime(bool direction, Station* station, int t)
+int Line::nextArrivalTime(bool direction, int position, int t)
 {
 	int s, e; //Vreme prolaska prvog i poslednjeg busa ove linije kroz tu stanicu
 
 	//direction odredjuje smer u kome zelimo da idemo (true za uskladjen smer, a false za suprotan smer)
 	if (direction) {
-		int n = station_position_[station->getCode()];
+		int n = position;
 		s = start_ + n * TIMEBETWEENSTATIONS;
 		e = end_ + n * TIMEBETWEENSTATIONS;
 	}
 	else {
-		int n = line_stations_.size() - 1 - station_position_[station->getCode()];
+		int n = line_stations_.size() - 1 - position;
 		s = reverse_start_ + n * TIMEBETWEENSTATIONS;
 		e = reverse_end_ + n * TIMEBETWEENSTATIONS;
 	}
