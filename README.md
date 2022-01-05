@@ -1,7 +1,5 @@
 # Javni-prevoz
  
- Kod koji simulira mrezu javnog prevoza.
- 
  Da biste koristili ovaj kod potrebno je proslediti mu jedan fajl sa stajalištima i jedan fajl sa autobuskim linijama a zatim izabrati operaciju koju zelite da izvršite nad tom mrežom.
  
  Fajl sa stajalištima mora biti u svakom redu imati po jedno stajalište u formatu šifra_stajališta naziv_stajališta.
