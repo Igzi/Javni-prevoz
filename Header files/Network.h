@@ -15,6 +15,8 @@ public:
 	Network(const Network& obj);
 	~Network();
 
+	Network& operator=(const Network& obj);
+
 	void loadStations(const string& filepath);
 	void loadLines(const string& filepath);
 

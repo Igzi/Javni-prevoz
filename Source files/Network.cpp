@@ -36,13 +36,35 @@ Network::Network(const Network& obj)
 
 		}
 	}
-
 }
 
 Network::~Network()
 {
 	clearStations();
 	clearLines();
+}
+
+Network& Network::operator=(const Network& obj)
+{
+	clearStations();
+	clearLines();
+
+	for (auto& station : obj.stations_) {
+		stations_[station.first] = new Station(*station.second);
+	}
+
+	for (auto& line : obj.lines_) {
+		Line* current_line = new Line(*line.second); //Generise se plitka kopija
+		lines_[line.first] = current_line;
+
+		for (int i = 0; i < current_line->line_stations_.size(); i++) {
+			Station* current_station = current_line->line_stations_[i];
+			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
+
+		}
+	}
+
+	return *this;
 }
 
 void Network::loadStations(const string& filepath)
