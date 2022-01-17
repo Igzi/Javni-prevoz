@@ -33,7 +33,6 @@ Network::Network(const Network& obj)
 		for (int i = 0; i < current_line->line_stations_.size(); i++) {
 			Station* current_station = current_line->line_stations_[i];
 			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
-
 		}
 	}
 }
@@ -60,7 +59,6 @@ Network& Network::operator=(const Network& obj)
 		for (int i = 0; i < current_line->line_stations_.size(); i++) {
 			Station* current_station = current_line->line_stations_[i];
 			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
-
 		}
 	}
 
@@ -335,16 +333,17 @@ bool Network::checkTimeFormat(const string& time) const
 int Network::parseTime(const string& time) const
 {
 	if (!checkTimeFormat(time)) {
-		throw Error(L"Vreme mora biti u formatu mm:ss.");
+		throw Error(L"Vreme mora biti u formatu hh:mm.");
 		return 0;
 	}
-	string mm, ss;
-	mm = time[0];
-	mm += time[1];
-	ss = time[3];
-	ss += time[4];
 
-	return 60 * stoi(mm) + stoi(ss);
+	string hh, mm;
+	hh = time[0];
+	hh += time[1];
+	mm = time[3];
+	mm += time[4];
+
+	return 60 * stoi(hh) + stoi(mm);
 }
 
 void Network::sortStationLines()

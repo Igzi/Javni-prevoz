@@ -21,23 +21,23 @@ int main() {
 	int user_input;
 	cin >> user_input;
 
-	if (user_input == 0) return 0;
+	if (user_input == CANCEL) return 0;
 	
 	UserInstructions* instructions = new UserInstructions();
 
-	if (instructions->loadStations() == 0) {
+	if (instructions->loadStations() == CANCEL) {
 		delete instructions;
 		return 0;
 	}
 
-	if (instructions->loadLines() == 0) {
+	if (instructions->loadLines() == CANCEL) {
 		delete instructions;
 		return 0;
 	}
 
 	wcout << L"Mreža gradskog prevoza je uspešno učitana" << endl;
 
-	while (user_input != 0) {
+	while (user_input != CANCEL) {
 		wcout << L"Molimo Vas, odaberite opciju:" << endl;
 		wcout << L"1. Prikaz informacija o stajalištu" << endl;
 		wcout << L"2. Prikaz osnovnih informacija o liniji gradskog prevoza" << endl;
@@ -47,19 +47,19 @@ int main() {
 
 		cin >> user_input;
 
-		if (user_input == 1) {
+		if (user_input == PRINTSTATION) {
 			instructions->printStation();
 		}
 
-		if (user_input == 2) {
+		if (user_input == PRINTLINE) {
 			instructions->printLine();
 		}
 
-		if (user_input == 3) {
+		if (user_input == PRINTSTATISTICS) {
 			instructions->printStatistics();
 		}
 
-		if (user_input == 4) {
+		if (user_input == PRINTPATH) {
 			if (instructions->printPath() == 0) {
 				delete instructions;
 				return 0;

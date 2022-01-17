@@ -20,7 +20,7 @@ UserInstructions::~UserInstructions()
 	delete network;
 }
 
-int UserInstructions::loadStations()
+UserResponse UserInstructions::loadStations()
 {
 	wcout << L"Molimo Vas, unesite putanju do fajla sa stajalištima:" << endl;
 
@@ -42,16 +42,16 @@ int UserInstructions::loadStations()
 			while (true) {
 				int user_input;
 				cin >> user_input;
-				if (user_input == 0) return 0; //0 je signal da korisnik zeli da zavrsi izvrsavanje programa
-				if (user_input == 1) break;
+				if (user_input == CANCEL) return CANCEL;
+				if (user_input == CONTINUE) break;
 				wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 			}
 		}
 	}
-	return 1; //1 je signal da je funkcija uspesno izvrsena
+	return UserResponse::CONTINUE;
 }
 
-int UserInstructions::loadLines()
+UserResponse UserInstructions::loadLines()
 {
 	wcout << L"Molimo Vas, unesite putanju do fajla sa linijama gradskog prevoza:" << endl;
 
@@ -73,13 +73,13 @@ int UserInstructions::loadLines()
 			while (true) {
 				int user_input;
 				cin >> user_input;
-				if (user_input == 0) return 0;
-				if (user_input == 1) break;
+				if (user_input == CANCEL) return CANCEL;
+				if (user_input == CONTINUE) break;
 				wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 			}
 		}
 	}
-	return 1;
+	return CONTINUE;
 }
 
 void UserInstructions::printStation()
@@ -133,7 +133,7 @@ void UserInstructions::printStatistics()
 	}
 }
 
-int UserInstructions::printPath()
+UserResponse UserInstructions::printPath()
 {
 	wcout << L"Molimo Vas, unesite početnu stanicu, krajnu stanicu i vreme polaska." << endl;
 
@@ -148,13 +148,13 @@ int UserInstructions::printPath()
 
 	while (true) {
 		cin >> type;
-		if (type == 0) return 0;
-		if (type == 1 || type == 2) break;
+		if (type == PATHCANCEL) return CANCEL;
+		if (type == FASTEST || type == SHORTEST) break;
 		wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 	}
 
 	try {
-		network->findPath(start, end, t, static_cast<PathType>(type - 1));
+		network->findPath(start, end, t, static_cast<PathType>(type));
 
 		wcout << L"Generisan je fajl putanja_" + to_wstring(start) + L"_" + to_wstring(end) + L".txt sa traženom putanjom." << endl;
 	}
@@ -162,5 +162,5 @@ int UserInstructions::printPath()
 		wcout << e.what() << endl;
 	}
 
-	return 1;
+	return CONTINUE;
 }

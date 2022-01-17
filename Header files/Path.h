@@ -6,8 +6,9 @@
 using namespace std;
 
 enum PathType {
-	FASTEST,
-	SHORTEST,
+	FASTEST = 1,
+	SHORTEST = 2,
+	PATHCANCEL = 0,
 };
 
 struct Path {

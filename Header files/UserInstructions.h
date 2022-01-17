@@ -3,19 +3,32 @@
 
 #include "Network.h"
 
+enum UserResponse {
+	CONTINUE = 1,
+	CANCEL = 0,
+};
+
+enum Instruction {
+	PRINTSTATION = 1,
+	PRINTLINE = 2,
+	PRINTSTATISTICS = 3,
+	PRINTPATH = 4,
+	INSTRUCTIONCANCEL = 0,
+};
+
 class UserInstructions {
 public:
 	UserInstructions();
 	UserInstructions(const UserInstructions& obj);
 	~UserInstructions();
 
-	int loadStations();
-	int loadLines();
+	UserResponse loadStations();
+	UserResponse loadLines();
 
 	void printStation();
 	void printLine();
 	void printStatistics();
-	int printPath();
+	UserResponse printPath();
 
 private:
 	Network* network;
