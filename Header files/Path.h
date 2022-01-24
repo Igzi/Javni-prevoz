@@ -5,14 +5,13 @@
 
 using namespace std;
 
-enum PathType {
-	FASTEST = 1,
-	SHORTEST = 2,
-	PATHCANCEL = 0,
-};
-
 struct Path {
 public:
+	enum PathType {
+		FASTEST = 1,
+		SHORTEST = 2,
+	};
+
 	friend struct ComparePath;
 	friend class Line;
 	friend class Network;

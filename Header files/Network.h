@@ -24,7 +24,7 @@ public:
 	void printLine(string& name);
 	void printStatistics(string& name);
 
-	void findPath(int start, int end, string clock, PathType type);
+	void findPath(int start, int end, string clock, Path::PathType type);
 
 private: 
 	

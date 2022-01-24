@@ -37,34 +37,10 @@ int main() {
 
 	wcout << L"Mreža gradskog prevoza je uspešno učitana" << endl;
 
-	while (user_input != CANCEL) {
-		wcout << L"Molimo Vas, odaberite opciju:" << endl;
-		wcout << L"1. Prikaz informacija o stajalištu" << endl;
-		wcout << L"2. Prikaz osnovnih informacija o liniji gradskog prevoza" << endl;
-		wcout << L"3. Prikaz statističkih informacija o liniji gradskog prevoza" << endl;
-		wcout << L"4. Pronalazak putanje između dva stajališta" << endl;
-		wcout << L"0. Kraj rada" << endl;
+	while (true) {
+		user_input = instructions->loadInstruction();
 
-		cin >> user_input;
-
-		if (user_input == PRINTSTATION) {
-			instructions->printStation();
-		}
-
-		if (user_input == PRINTLINE) {
-			instructions->printLine();
-		}
-
-		if (user_input == PRINTSTATISTICS) {
-			instructions->printStatistics();
-		}
-
-		if (user_input == PRINTPATH) {
-			if (instructions->printPath() == 0) {
-				delete instructions;
-				return 0;
-			}
-		}
+		if (instructions->executeInstruction(user_input) == CANCEL) break;
 	}
 
 	delete instructions;

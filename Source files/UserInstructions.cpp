@@ -22,9 +22,9 @@ UserInstructions::~UserInstructions()
 
 UserResponse UserInstructions::loadStations()
 {
-	wcout << L"Molimo Vas, unesite putanju do fajla sa stajalištima:" << endl;
-
 	while (true) {
+		wcout << L"Molimo Vas, unesite putanju do fajla sa stajalištima:" << endl;
+
 		try {
 			string filepath;
 			cin >> filepath;
@@ -53,9 +53,9 @@ UserResponse UserInstructions::loadStations()
 
 UserResponse UserInstructions::loadLines()
 {
-	wcout << L"Molimo Vas, unesite putanju do fajla sa linijama gradskog prevoza:" << endl;
-
 	while (true) {
+		wcout << L"Molimo Vas, unesite putanju do fajla sa linijama gradskog prevoza:" << endl;
+
 		try {
 			string filepath;
 			cin >> filepath;
@@ -79,6 +79,51 @@ UserResponse UserInstructions::loadLines()
 			}
 		}
 	}
+	return CONTINUE;
+}
+
+int UserInstructions::loadInstruction()
+{
+	wcout << L"Molimo Vas, odaberite opciju:" << endl;
+	wcout << L"1. Prikaz informacija o stajalištu" << endl;
+	wcout << L"2. Prikaz osnovnih informacija o liniji gradskog prevoza" << endl;
+	wcout << L"3. Prikaz statističkih informacija o liniji gradskog prevoza" << endl;
+	wcout << L"4. Pronalazak putanje između dva stajališta" << endl;
+	wcout << L"0. Kraj rada" << endl;
+
+	int user_input;
+	cin >> user_input;
+
+	return user_input;
+}
+
+UserResponse UserInstructions::executeInstruction(int user_input)
+{
+	switch (user_input) {
+		case PRINTSTATION:
+			printStation();
+			break;
+
+		case PRINTLINE:
+			printLine();
+			break;
+
+		case PRINTSTATISTICS:
+			printStatistics();
+			break;
+
+		case PRINTPATH:
+			printPath();
+			break;
+
+		case INSTRUCTIONCANCEL:
+			return CANCEL;
+			break;
+
+		default:
+			wcout << L"Neispravan unos, pokušajte ponovo." << endl;
+	}
+
 	return CONTINUE;
 }
 
@@ -133,7 +178,7 @@ void UserInstructions::printStatistics()
 	}
 }
 
-UserResponse UserInstructions::printPath()
+void UserInstructions::printPath()
 {
 	wcout << L"Molimo Vas, unesite početnu stanicu, krajnu stanicu i vreme polaska." << endl;
 
@@ -148,19 +193,17 @@ UserResponse UserInstructions::printPath()
 
 	while (true) {
 		cin >> type;
-		if (type == PATHCANCEL) return CANCEL;
-		if (type == FASTEST || type == SHORTEST) break;
+		if (type == CANCEL) return;
+		if (type == Path::FASTEST || type == Path::SHORTEST) break;
 		wcout << L"Neispravan unos, pokušajte ponovo." << endl;
 	}
 
 	try {
-		network->findPath(start, end, t, static_cast<PathType>(type));
+		network->findPath(start, end, t, static_cast<Path::PathType>(type));
 
 		wcout << L"Generisan je fajl putanja_" + to_wstring(start) + L"_" + to_wstring(end) + L".txt sa traženom putanjom." << endl;
 	}
 	catch (Error e) {
 		wcout << e.what() << endl;
 	}
-
-	return CONTINUE;
 }

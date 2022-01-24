@@ -170,7 +170,7 @@ void Network::printStatistics(string& name)
 	lines_[name]->printStatistics(filepath);
 }
 
-void Network::findPath(int start, int end, string clock, PathType type)
+void Network::findPath(int start, int end, string clock, Path::PathType type)
 {
 	if (stations_.find(start) == stations_.end()) {
 		throw Error(L"Stanica sa šifrom " + to_wstring(start) + L" ne postoji.");

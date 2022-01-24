@@ -20,12 +20,12 @@ Path::Path(int time, int start, int end, int l, int r, int bus_cnt, string line,
 
 bool ComparePath::operator()(Path const& p1, Path const& p2)
 {
-	if (p1.type_ == FASTEST) {
+	if (p1.type_ == Path::FASTEST) {
 		if (p1.time_ != p2.time_) return p1.time_ > p2.time_;
 		return p1.bus_cnt_ > p2.bus_cnt_;
 	}
 
-	if (p1.type_ == SHORTEST) {
+	if (p1.type_ == Path::SHORTEST) {
 		if (p1.bus_cnt_ != p2.bus_cnt_) return p1.bus_cnt_ > p2.bus_cnt_; 
 		return p1.time_ > p2.time_;
 	}
