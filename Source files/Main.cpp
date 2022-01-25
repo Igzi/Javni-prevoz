@@ -9,8 +9,7 @@ int main() {
 		instructions = new UserInstructions();
 	}
 	catch (Error& e) {
-		//Objekat je nastao ali su njegove vrednosti neodredjene pa ga moramo obrisati i prekinuti izvrsavanje programa
-		delete instructions;
+		//Ukoliko ne mozemo napraviti objekat instructions moramo prekinuti izvrsavanje programa
 		return 0;
 	}
 
