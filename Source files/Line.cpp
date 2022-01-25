@@ -75,10 +75,8 @@ vector<Path*> Line::findPaths(int current_station, int t, Path& current_path)
 }
 
 //Ispisuje osnovne podatke o liniji u trazenom formatu
-void Line::print(const string& filepath) const
+void Line::print(ofstream& output) const
 {
-	ofstream output(filepath);
-
 	output << name_ << " " << line_stations_[0]->name_ << "->" << line_stations_.back()->name_;
 	for (int i = 0; i < line_stations_.size(); i++) {
 		output << "\n" << line_stations_[i]->code_ << " " << line_stations_[i]->name_;
@@ -86,7 +84,7 @@ void Line::print(const string& filepath) const
 }
 
 //Ispisuje statistiku o liniji u trazenom formatu
-void Line::printStatistics(const string& filepath)
+void Line::printStatistics(ofstream& output)
 {
 	if (intersecting_lines_.empty()) {
 		//Ako do sad nismo odredili skup svih linija koje dele stajaliste sa ovom linijom potrebno je to da uradimo ovde
@@ -99,7 +97,6 @@ void Line::printStatistics(const string& filepath)
 		}
 	}
 
-	ofstream output(filepath);
 	set<string>::iterator it = intersecting_lines_.begin();
 
 	output << name_ << "\n";

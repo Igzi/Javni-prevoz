@@ -20,7 +20,7 @@ public:
 	void addLine(string& new_line);
 	void sortLines();
 
-	void print(const string& filepath) const;
+	void print(ofstream& output) const;
 
 private:
 	int code_; //Sifra stanice

@@ -39,6 +39,8 @@ private:
 	void clearStations();
 	void clearLines();
 
+	void copy(const Network& obj);
+
 	Line* makeLine(string& line, int& file_line);
 
 	bool isNumber(const string& num) const;
@@ -48,6 +50,9 @@ private:
 	void sortStationLines();
 
 	void printPaths(int start, int end, const string& filepath, unordered_map<int, Path>& stations);
+
+	bool checkInputFile(ifstream& file, const string& filepath);
+	bool checkOutputFile(ofstream& file, const string& filepath);
 
 	unordered_map<int, Station*> stations_; //Mapa svih stanica unedjena po sifri stanica
 	unordered_map<string, Line*> lines_; //Mapa svih linija uredjena po nazivu linije

@@ -1,13 +1,23 @@
 ﻿#include "Exception.h"
 #include "UserInstructions.h"
 
+#include <io.h>
+#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
 UserInstructions::UserInstructions()
 {
-	network = new Network();
+	_setmode(_fileno(stdout), _O_U16TEXT); //Postavlja format ispisa na UTF16
+
+	try {
+		network = new Network();
+	}
+	catch (Error& e) {
+		wcout << e.what() << endl;
+		throw e;
+	}
 }
 
 UserInstructions::UserInstructions(const UserInstructions& obj)
@@ -18,6 +28,33 @@ UserInstructions::UserInstructions(const UserInstructions& obj)
 UserInstructions::~UserInstructions()
 {
 	delete network;
+}
+
+UserInstructions& UserInstructions::operator=(const UserInstructions& obj)
+{
+	if (this == &obj) return *this;
+
+	network = new Network(*obj.network);
+	
+	return *this;
+}
+
+UserResponse UserInstructions::loadNetwork()
+{
+	wcout << L"Dobrodošli u simulator mreže gradskog prevoza. Molimo Vas, odaberite opciju:" << endl;
+	wcout << L"1. Učitavanje podataka o mreži gradskog prevoza" << endl;
+	wcout << L"0. Kraj rada" << endl;
+
+	int user_input;
+	cin >> user_input;
+
+	if (user_input == CANCEL) return CANCEL;
+	if (loadStations() == CANCEL) return CANCEL;
+	if (loadLines() == CANCEL) return CANCEL;
+
+	wcout << L"Mreža gradskog prevoza je uspešno učitana" << endl;
+
+	return CONTINUE;
 }
 
 UserResponse UserInstructions::loadStations()

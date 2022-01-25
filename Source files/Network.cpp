@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include<direct.h>
 
 const string Network::SEPARATOR = "_";
 const string Network::FILETYPETXT = ".txt";
@@ -18,23 +19,16 @@ const string Network::PATHFILEPREFIX = "putanja";
 
 Network::Network()
 {
+	//Nastaje folder za izlane fajlove ukoliko taj folder ne postoji
+	if (_mkdir(FOLDERPATH.c_str()) == -1 && errno != EEXIST) {
+		//Ukoliko nije moguce napraviti folder za izlazne fajlove prijavljujemo gresku
+		throw Error(L"Nije moguće napraviti folder za izlazne fajlove.");
+	}
 }
 
 Network::Network(const Network& obj)
 {
-	for (auto& station : obj.stations_) {
-		stations_[station.first] = new Station(*station.second);
-	}
-
-	for (auto& line : obj.lines_) {
-		Line* current_line = new Line(*line.second); //Generise se plitka kopija
-		lines_[line.first] = current_line;
-
-		for (int i = 0; i < current_line->line_stations_.size(); i++) {
-			Station* current_station = current_line->line_stations_[i];
-			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
-		}
-	}
+	copy(obj);
 }
 
 Network::~Network()
@@ -45,22 +39,12 @@ Network::~Network()
 
 Network& Network::operator=(const Network& obj)
 {
+	if (this == &obj) return *this;
+
 	clearStations();
 	clearLines();
 
-	for (auto& station : obj.stations_) {
-		stations_[station.first] = new Station(*station.second);
-	}
-
-	for (auto& line : obj.lines_) {
-		Line* current_line = new Line(*line.second); //Generise se plitka kopija
-		lines_[line.first] = current_line;
-
-		for (int i = 0; i < current_line->line_stations_.size(); i++) {
-			Station* current_station = current_line->line_stations_[i];
-			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
-		}
-	}
+	copy(obj);
 
 	return *this;
 }
@@ -71,12 +55,7 @@ void Network::loadStations(const string& filepath)
 
 	ifstream input(filepath);
 
-	if (!input.is_open()) {
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-		wstring msg = L"Nije moguće otvoriti fajl " + conv.from_bytes(filepath) + L".";
-		throw FileError(msg, 0);
-		return;
-	}
+	if (!checkInputFile(input, filepath)) return;
 
 	string code, name;
 	int int_code, file_line = 0;
@@ -100,6 +79,8 @@ void Network::loadStations(const string& filepath)
 		Station* new_station = new Station(int_code, name);
 		stations_[int_code] = new_station;
 	}
+
+	input.close();
 }
 
 void Network::loadLines(const string& filepath)
@@ -109,12 +90,7 @@ void Network::loadLines(const string& filepath)
 	ifstream input(filepath);
 	string line;
 
-	if (!input.is_open()) {
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-		wstring msg = L"Nije moguće otvoriti fajl " + conv.from_bytes(filepath) + L".";
-		throw FileError(msg, 0);
-		return;
-	}
+	if (!checkInputFile(input, filepath)) return;
 
 	int file_line = 0;
 	try {
@@ -130,6 +106,8 @@ void Network::loadLines(const string& filepath)
 	}
 
 	sortStationLines();
+
+	input.close();
 }
 
 void Network::printStation(int code)
@@ -140,8 +118,13 @@ void Network::printStation(int code)
 	}
 
 	string filepath = FOLDERPATH + STATIONFILEPREFIX + SEPARATOR + to_string(code) + FILETYPETXT;
+	ofstream output(filepath);
 
-	stations_[code]->print(filepath);
+	if (!checkOutputFile(output, filepath)) return;
+
+	stations_[code]->print(output);
+
+	output.close();
 }
 
 void Network::printLine(string& name)
@@ -153,8 +136,13 @@ void Network::printLine(string& name)
 	}
 
 	string filepath = FOLDERPATH + LINEFILEPREFIX + SEPARATOR + name + FILETYPETXT;
+	ofstream output(filepath);
 
-	lines_[name]->print(filepath);
+	if (!checkOutputFile(output, filepath)) return;
+
+	lines_[name]->print(output);
+
+	output.close();
 }
 
 void Network::printStatistics(string& name)
@@ -166,8 +154,13 @@ void Network::printStatistics(string& name)
 	}
 
 	string filepath = FOLDERPATH + STATISTICSFILEPREFIX + SEPARATOR + name + FILETYPETXT;
+	ofstream output(filepath);
 
-	lines_[name]->printStatistics(filepath);
+	if (!checkOutputFile(output, filepath)) return;
+
+	lines_[name]->printStatistics(output);
+
+	output.close();
 }
 
 void Network::findPath(int start, int end, string clock, Path::PathType type)
@@ -242,6 +235,23 @@ void Network::clearLines()
 		delete line.second;
 	}
 	lines_.clear();
+}
+
+void Network::copy(const Network& obj)
+{
+	for (auto& station : obj.stations_) {
+		stations_[station.first] = new Station(*station.second);
+	}
+
+	for (auto& line : obj.lines_) {
+		Line* current_line = new Line(*line.second); //Generise se plitka kopija
+		lines_[line.first] = current_line;
+
+		for (int i = 0; i < current_line->line_stations_.size(); i++) {
+			Station* current_station = current_line->line_stations_[i];
+			current_line->line_stations_[i] = stations_[current_station->getCode()]; //Pretvara plitku kopiju u duboku
+		}
+	}
 }
 
 Line* Network::makeLine(string& line, int& file_line)
@@ -383,4 +393,31 @@ void Network::printPaths(int start, int end, const string& filepath, unordered_m
 			output << "\n" << paths[i].line_ << "->" << paths[i + 1].line_ << "\n";
 		}
 	}
+
+	output.close();
+}
+
+bool Network::checkInputFile(ifstream& file, const string& filepath)
+{
+	if (!file.is_open()) {
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		wstring msg = L"Nije moguće otvoriti fajl " + conv.from_bytes(filepath) + L".";
+		//Potrebno je proslediti dalje ovu gresku zato sto se od nje ne mozemo oporaviti
+		throw FileError(msg, 0);
+		return false;
+	}
+
+	return true;
+}
+
+bool Network::checkOutputFile(ofstream& file, const string& filepath)
+{
+	if (!file.is_open()) {
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		//Nije neophodno proslediti dalje gresku zato sto klasa network moze nesmetano nastaviti sa radom nakon ove greske
+		wcout << L"Nije moguće napraviti fajl " + conv.from_bytes(filepath) + L"." << endl;
+		return false;
+	}
+
+	return true;
 }

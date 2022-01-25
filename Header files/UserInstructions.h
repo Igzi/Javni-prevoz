@@ -14,8 +14,9 @@ public:
 	UserInstructions(const UserInstructions& obj);
 	~UserInstructions();
 
-	UserResponse loadStations();
-	UserResponse loadLines();
+	UserInstructions& operator=(const UserInstructions& obj);
+
+	UserResponse loadNetwork();
 
 	int loadInstruction();
 	UserResponse executeInstruction(int user_input);
@@ -26,6 +27,9 @@ public:
 	void printPath();
 
 private:
+	UserResponse loadStations();
+	UserResponse loadLines();
+
 	enum Instruction {
 		PRINTSTATION = 1,
 		PRINTLINE = 2,

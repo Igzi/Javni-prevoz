@@ -48,10 +48,8 @@ void Station::sortLines()
 }
 
 //Ispisuje podatke o stanici u trazenom formatu
-void Station::print(const string& filepath) const
+void Station::print(ofstream& output) const
 {
-	ofstream output(filepath);
-
 	output << code_ << " " << name_<<" [";
 	for (int i = 0; i < station_lines_.size(); i++) {
 		if (i != 0) output << " ";

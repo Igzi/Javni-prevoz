@@ -21,8 +21,8 @@ public:
 
 	vector<Path*> findPaths(int current_station, int t, Path& current_path);
 
-	void print(const string& filepath) const;
-	void printStatistics(const string& filepath);
+	void print(ofstream& output) const;
+	void printStatistics(ofstream& output);
 	void printPath(ofstream& output, int l, int r);
 
 	int nextArrivalTime(bool direction, int position, int t);
